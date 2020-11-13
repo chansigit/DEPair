@@ -4,6 +4,7 @@ ShuffleIdent<- function(random.seed, seurat.obj, ident.name, expr.cutoff, lig.na
     
     
     # shuffle the identities
+    Idents(seurat.obj)<-ident.name
     identity <- seurat.obj@meta.data[ , ident.name, drop=TRUE] # get a vector of cell annotations
     seurat.obj$random<-sample(identity)      # randomly permute the annotations
     
@@ -24,7 +25,7 @@ ShuffleIdent<- function(random.seed, seurat.obj, ident.name, expr.cutoff, lig.na
     return(result)
 }
 
-ComputeBackground <- function(seu, n, LRDB, group.by="celltype0627", expr.cutoff=1, cores=4){
+ComputeBackground <- function(seu, n, LRDB, group.by, expr.cutoff=1, cores=4){
     
     message("Triming LR-pair DB")
     # trim ligand-receptor pair database 
@@ -40,6 +41,7 @@ ComputeBackground <- function(seu, n, LRDB, group.by="celltype0627", expr.cutoff
     for (assay_name in names(seu@assays)){
         if (assay_name!="RNA"){ seu@assays[[assay_name]]<-NULL }
     }
+    Idents(seu)<-group.by
     
     if (cores>1){
         message("Computing parallely")
@@ -80,11 +82,17 @@ ComputeBackground <- function(seu, n, LRDB, group.by="celltype0627", expr.cutoff
 
 
 
+
+
+
 PairMatch <-function(expr.ligand, expr.receptor, celltype.1, celltype.2, LRDB){
     message(paste(celltype.1, "-> ⊃-", celltype.2))
     inner.prod <- expr.ligand[,celltype.1,drop=FALSE] * expr.receptor[,celltype.2,drop=FALSE]
     row.names(inner.prod) <- LRDB$pair
     pos.sel    <- inner.prod[,1]>0
+    if (sum(pos.sel)==0){ 
+        return (NULL)
+    }
     
     if (sum(pos.sel)>1){ 
         positive.scores <- inner.prod[pos.sel,,drop=TRUE]
@@ -104,12 +112,16 @@ CountExtremeEvent<-function(shuffle, LR.scores,
     # compute the interaction scores in shuffled data
     expr.ligand    <- shuffle$expr.ligand
     expr.receptor  <- shuffle$expr.receptor
+    
     inner.prod     <- expr.ligand[,celltype.1,drop=FALSE] * expr.receptor[,celltype.2,drop=FALSE]
     row.names(inner.prod) <- LRDB$pair
+    
+    
     LR.scores.null <- inner.prod[names(LR.scores),]
     extreme        <- as.numeric(LR.scores.null>LR.scores)
     return(extreme)
 }
+
 
 ComputePVal <- function(LR.scores, Backgrounds, 
                         celltype.1, celltype.2, 
@@ -130,7 +142,7 @@ ComputePVal <- function(LR.scores, Backgrounds,
     }else{
         count.list <-lapply(Backgrounds, CountExtremeEvent, 
                                      LR.scores=LR.scores, celltype.1=celltype.1, celltype.2=celltype.2, 
-                                     expr.ligand=expr.ligand, expr.receptor=expr.receptor, LRDB)    
+                                     expr.ligand=expr.ligand, expr.receptor=expr.receptor, LRDB=LRDB)    
     }
 
     LR.scores.pval <- Reduce("+",count.list) / n
@@ -138,16 +150,14 @@ ComputePVal <- function(LR.scores, Backgrounds,
 }
 
 
-
-
-
-ComputeCrosstalkScores <- function(seu, LRDB, group.by="celltype0627", Backgrounds, expr.cutoff=1, cores=1){
+ComputeCrosstalkScores <- function(seu, LRDB, group.by, Backgrounds, expr.cutoff=1, cores=1){
     
     # trim ligand-receptor pair database 
     ligand.indata   <- unique(LRDB$ligand_symbol[LRDB$ligand_symbol %in%rownames(seu)])
     receptor.indata <- unique(LRDB$receptor_symbol[LRDB$receptor_symbol %in%rownames(seu)])
     lrpair.indata   <-(LRDB$ligand_symbol %in% ligand.indata)&(LRDB$receptor_symbol %in% receptor.indata)
     LRDB            <- LRDB[lrpair.indata, ]
+    
 
     # trim seurat object
     features.sel<-unique(c(LRDB$ligand_symbol, LRDB$receptor_symbol))
@@ -168,17 +178,21 @@ ComputeCrosstalkScores <- function(seu, LRDB, group.by="celltype0627", Backgroun
     crosstalk<-list()
     for (ct1 in levels(seu)){
         for (ct2 in levels(seu)){
-            
             LR.scores <- PairMatch(expr.ligand=expr.ligand, 
                                    expr.receptor=expr.receptor,
                                    celltype.1=ct1, celltype.2=ct2, LRDB=LRDB)
-            
-            LR.scores.pval <- ComputePVal(LR.scores = LR.scores,Backgrounds = Backgrounds, 
+            if (is.null(LR.scores)==FALSE){
+                LR.scores.pval <- ComputePVal(LR.scores = LR.scores, Backgrounds = Backgrounds, 
                                           celltype.1=ct1,  celltype.2=ct2,
                                           expr.ligand=expr.ligand, expr.receptor=expr.receptor,
                                           LRDB=LRDB, cores=cores)
+                crosstalk[[ct1]][[ct2]] <- data.frame(score=LR.scores, pval=LR.scores.pval)%>%arrange(pval)
+            }else{
+                crosstalk[[ct1]][[ct2]] <- data.frame(score=numeric(), pval=numeric())
+            }
             
-            crosstalk[[ct1]][[ct2]] <- data.frame(score=LR.scores, pval=LR.scores.pval)%>%arrange(pval)
+            
+            
         }
     }
     return(crosstalk)
