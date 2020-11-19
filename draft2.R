@@ -178,7 +178,7 @@ GetNullDistribution<-function(seu, nPerm, nCores,
 ComputePValue<- function(seu, nPerm, nCores, value, 
                          celltype.ligand, celltype.receptor, ligand,receptor,
                          return.background=FALSE){
-    bkg<-GetNullDistribution(seu = immune.combined, nPerm = nPerm, nCores = nCores,
+    bkg<-GetNullDistribution(seu = seu, nPerm = nPerm, nCores = nCores,
                              celltype.ligand =celltype.ligand, 
                              celltype.receptor=celltype.receptor,
                              ligand =ligand,receptor=receptor)
