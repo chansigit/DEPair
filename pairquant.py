@@ -132,7 +132,8 @@ def get_significance(adata, crosstalk, LRDB, n_perm, groupby,
     #celltype_list = list(randexpr.columns)
     
     # generate random permutations
-    from tqdm.autonotebook import trange
+    from tqdm import tqdm
+    from tqdm import trange
     for r in trange(n_perm): 
         # generate random ligand/receptor expressions
         randexpr      = grouped_rand_mean(adata, group_key=groupby)
@@ -165,6 +166,7 @@ def get_significance(adata, crosstalk, LRDB, n_perm, groupby,
                 #    nLower[(i,j)]  = nLower[(i,j)]  + (intensity<randintensity).astype(int)
     
     # calculate p-values and fold changes
+    from statsmodels.stats.multitest import multipletests
     pseudo_expr = 0 if pseudo_expr is None else pseudo_expr
     for i in (celltype_list):
         for j in (celltype_list):
@@ -195,6 +197,7 @@ def get_significance(adata, crosstalk, LRDB, n_perm, groupby,
                 
     return crosstalk            
     
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 LRDB=pd.read_csv("./LR_DASkelly.csv")
 adata, LRDB = primary_trimming(adata, LRDB, groupby="celltype0627")
