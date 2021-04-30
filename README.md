@@ -17,6 +17,7 @@ DEPair is still under development. We call for developers participating in this 
 - [x] human and mouse ligand-receptor databases
 - [ ] ligand-receptor databases for other species 
 - [ ] a tutorial as well as a document online at readthedocs
+- [ ] upload to pypi
 
 ---
 
@@ -24,6 +25,6 @@ DEPair is still under development. We call for developers participating in this 
 2021-04-08 - prerelease test version online
 2021-04-30 - Qijin Yin contributed the permutation speed up codes
 
---
+---
 
 contributors: Sijie Chen, Qijin Yin
