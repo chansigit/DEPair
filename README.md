@@ -17,6 +17,7 @@ DEPair is still under development. We call for developers participating in this 
 - [ ] permutation speed up
 - [x] human and mouse ligand-receptor databases
 - [ ] ligand-receptor databases for other species 
+- [ ] a tutorial as well as a document online at readthedocs
 
 ---
 
