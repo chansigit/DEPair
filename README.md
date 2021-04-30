@@ -22,8 +22,8 @@ DEPair is still under development. We call for developers participating in this 
 ---
 
 ## News
-2021-04-08 - prerelease test version online
-2021-04-30 - Qijin Yin contributed the permutation speed up codes
+- 2021-04-08  prerelease test version online
+- 2021-04-30  Qijin Yin contributed the permutation speed up codes
 
 ---
 
