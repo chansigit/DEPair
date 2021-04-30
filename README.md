@@ -18,6 +18,7 @@ DEPair is still under development. We call for developers participating in this 
 - [ ] ligand-receptor databases for other species 
 - [ ] a tutorial as well as a document online at readthedocs
 - [ ] upload to pypi
+- [ ] spatial transcriptomics support
 
 ---
 
