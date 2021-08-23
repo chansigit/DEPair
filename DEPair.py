@@ -6,6 +6,24 @@ import os,pickle,random
 import matplotlib.pyplot as plt
 import pickle
 
+####  multi-processing
+from tqdm import tqdm
+#from tqdm.notebook import tqdm
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import numpy as np
+def poolmap(function,array, n_jobs=30,use_kwargs=None,use_args=None):
+    if use_kwargs is None: use_kwargs = True if isinstance(array[0],dict) else False
+    if use_args is None: use_args = True if isinstance(array[0],(list,np.ndarray)) else False
+    with ProcessPoolExecutor(max_workers=n_jobs) as pool:
+        if use_kwargs: futures = [pool.submit(function, **a) for a in array]
+        elif use_args:futures = [pool.submit(function, *a) for a in array]
+        else:futures = [pool.submit(function, a) for a in array]      
+        _ = list( tqdm(as_completed(futures), total=len(futures)))
+    out = [ x.result() for x in futures]
+    return  out
+####  multi-processing
+
+
 def grouped_obs_mean(adata, group_key, layer=None, 
                      log_space_averaging= True):
     # define an operator for expression matrix retieval
@@ -198,7 +216,81 @@ def get_significance(adata, crosstalk, LRDB, n_perm, groupby,
             #crosstalk[(i,j)]=crosstalk[(i,j)][sel]           
                 
     return crosstalk            
+  
+
+def parallel_func(perm_idx,):
+    global GLOBAL_crosstalk,GLOBAL_crosstalk,GLOBAL_LRDB,GLOBAL_groupby
     
+    lig_symbols = GLOBAL_LRDB["ligand_symbol"]
+    rec_symbols = GLOBAL_LRDB["receptor_symbol"]
+    randexpr      = grouped_rand_mean(GLOBAL_adata, group_key=GLOBAL_groupby)
+    randexpr_lig  = randexpr.loc[lig_symbols]
+    randexpr_rec  = randexpr.loc[rec_symbols]
+    num_LRs = GLOBAL_LRDB.shape[0]
+    celltype_list = list(set([x[0] for x in GLOBAL_crosstalk.keys()]))
+    
+    num_ct = len(celltype_list)
+    avg_randintensity = np.zeros((num_ct,num_ct,num_LRs))
+    nLarger = np.zeros((num_ct,num_ct,num_LRs))
+    # enumerate cell type pairs
+    for idx_i,i in  enumerate(celltype_list): # ligand cell type
+        for idx_j,j in enumerate(celltype_list): # receptor cell type
+            # calculate pair intensities (real/random)
+            intensity     = GLOBAL_crosstalk[(i,j)]['intensity'].values
+            randintensity = np.array(randexpr_lig[i]) * np.array(randexpr_rec[j])
+
+            # calculate the average of random intensities
+            avg_randintensity[idx_i,idx_j] = randintensity
+            nLarger[idx_i,idx_j] = (intensity>=randintensity).astype(int)
+    return avg_randintensity,nLarger
+
+global GLOBAL_crosstalk,GLOBAL_LRDB,GLOBAL_adata,GLOBAL_groupby
+
+def get_significance_parallel(adata, crosstalk, LRDB, n_perm, groupby, 
+                     use_jupyter=True, pseudo_expr=1e-5,n_jobs=30):
+    lig_symbols = LRDB["ligand_symbol"]
+    rec_symbols = LRDB["receptor_symbol"]
+
+    celltype_list = list(set([x[0] for x in crosstalk.keys()]))
+
+    global GLOBAL_crosstalk,GLOBAL_LRDB,GLOBAL_adata,GLOBAL_groupby
+    GLOBAL_crosstalk = crosstalk
+    GLOBAL_LRDB = LRDB
+    GLOBAL_adata = adata
+    GLOBAL_groupby = groupby
+    
+    
+    pool_res = poolmap(parallel_func,range(n_perm),n_jobs = n_jobs)
+    pool_res = np.array(pool_res) # [n_perm,2,num_ct,num_ct,num_LRs]
+    avg_randintensity = pool_res[:,0].mean(axis=0)
+    nLarger = pool_res[:,1].sum(axis=0)
+    
+    right_tail_mat = 2.0*(1+nLarger)/(1+n_perm)
+    left_tail_mat = 2.0*(1-nLarger)/(1+n_perm)
+    p_val_vec_mat = np.minimum(right_tail_mat,left_tail_mat)
+    
+    from statsmodels.stats.multitest import multipletests
+    pseudo_expr = 0 if pseudo_expr is None else pseudo_expr
+    for idx_i,i in enumerate(celltype_list):
+        for idx_j,j in enumerate(celltype_list):
+            p_val_vec =p_val_vec_mat[idx_i,idx_j]
+            
+            crosstalk[(i,j)]["avg_null"] = avg_randintensity[idx_i,idx_j]
+            crosstalk[(i,j)]["p_val"] =p_val_vec
+            crosstalk[(i,j)]["p_val_adj"] =multipletests(pvals=p_val_vec, 
+                                                     alpha=0.05, 
+                                                     method="fdr_bh",
+                                                     is_sorted=False, 
+                                                     returnsorted=False)[1]
+            crosstalk[(i,j)]["cell_ligand"]= i
+            crosstalk[(i,j)]["cell_receptor"]= j
+            crosstalk[(i,j)]["log_avgFC"] =np.log2(
+                 (pseudo_expr +crosstalk[(i,j)]["intensity"].to_numpy())/ 
+                 (pseudo_expr +avg_randintensity[idx_i,idx_j])  )
+    
+                
+    return crosstalk    
+
 #-----------------------------------------------------------------------------
 
 def get_expression_fraction(anndata, gene, groupby, group):
