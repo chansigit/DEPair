@@ -265,8 +265,10 @@ def get_significance_parallel(adata, crosstalk, LRDB, n_perm, groupby,
     avg_randintensity = pool_res[:,0].mean(axis=0)
     nLarger = pool_res[:,1].sum(axis=0)
     
-    right_tail_mat = 2.0*(1+nLarger)/(1+n_perm)
-    left_tail_mat = 2.0*(1-nLarger)/(1+n_perm)
+    #right_tail_mat = 2.0*(1+nLarger)/(1+n_perm) 
+    #left_tail_mat = 2.0*(1-nLarger)/(1+n_perm)    # this is a bug, causing negative p-values, corrected as following two lines
+    right_tail_mat = 2.0*     (1+nLarger)/(1+n_perm)
+    left_tail_mat  = 2.0* (1- (  nLarger)/(1+n_perm) )
     p_val_vec_mat = np.minimum(right_tail_mat,left_tail_mat)
     
     from statsmodels.stats.multitest import multipletests
