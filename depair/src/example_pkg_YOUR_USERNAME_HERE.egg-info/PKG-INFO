@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: example-pkg-YOUR-USERNAME-HERE
+Version: 0.0.1
+Summary: A package calculating cell crosstalks
+Home-page: https://github.com/chansigit/dePair/
+Author: Sijie Chen, Qijin Yin, Haoxiang Gao
+Author-email: chansigit@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/chansigit/dePair/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: Freeware
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# DEPair
+
+This is a simple example package. You can use
+[Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
+to write your content.
+
