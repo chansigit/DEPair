@@ -31,7 +31,7 @@ crosstalk_normal=crosstalk(anndata=adata_normal,
                            n_perm=1000,  n_jobs=48)
                            
 crosstalk_degenerated=crosstalk(anndata=adata_degenerated, 
-LRDB_table=LRDB,
+                                LRDB_table=LRDB,
                                 groupby="ann210819",
                                 verbose=True, pgb_notebook=True, 
                                 n_perm=1000,  n_jobs=48)
