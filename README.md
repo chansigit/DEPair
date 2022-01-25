@@ -55,6 +55,8 @@ crosstalk_degenerated=crosstalk(anndata=adata_degenerated,
 - [ ] ligand-receptor database with detailed annotation
 - [ ] clustering granularity selection
 - [ ] visualization
+- [ ] scanpy support
+- [ ] supergraph exploration
 
 ---
 
