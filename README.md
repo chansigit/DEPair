@@ -51,6 +51,10 @@ crosstalk_degenerated=crosstalk(anndata=adata_degenerated,
 - [ ] a tutorial as well as a document online at readthedocs
 - [ ] upload to pypi
 - [ ] spatial transcriptomics support
+- [ ] multi subunit analysis support
+- [ ] ligand-receptor database with detailed annotation
+- [ ] clustering granularity selection
+- [ ] visualization
 
 ---
 
