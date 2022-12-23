@@ -25,7 +25,13 @@ def iterator_pgbar(iterator, pgb_notebook, ncols=80 ):
 
 def __grouped_obs_mean(adata, group_key, layer=None, 
                      log_space_averaging= True):
-    # define an operator for expression matrix retieval
+    """
+    A util function calculating average expression with in each group.
+    adata: an AnnData object
+    group_key: a column in adata.obs 
+    layer: data layer. if None, adata.X is used
+    log_space_averaging: if True, averaging in non-log space, and return the log of the averaged values
+    """
     if layer is not None:
         getX = lambda x: x.layers[layer]
     else:
@@ -44,7 +50,7 @@ def __grouped_obs_mean(adata, group_key, layer=None,
     # compute average expression in the celltype-wise manner (by celltype column)
     for group, idx in grouped.indices.items(): # group:=celltype idx:=barcodes
         X = getX(adata[idx]) # cell-by-gene matrix
-        if log_space_averaging: # averaging in the log-space, return the log of the averaged values
+        if log_space_averaging: # averaging in the non-log-space, return the log of the averaged values
             out[group] = np.ravel(np.log(np.exp(X).mean(axis=0, dtype=np.float64))) # axis=0:= avg across cells
         else:
             out[group] = np.ravel(X.mean(axis=0, dtype=np.float64)) # axis=0:= avg across cells
@@ -52,6 +58,9 @@ def __grouped_obs_mean(adata, group_key, layer=None,
     
 
 def __primary_trimming(adata, LRDB, groupby):
+    """
+    A util function exclude genes that are not present in the LRDB table
+    """
     # 1. check if gene symbols are occurred in the dataset
     sel=np.logical_and(LRDB["ligand_symbol"].isin(adata.var_names), 
                        LRDB["receptor_symbol"].isin(adata.var_names)) 
@@ -349,6 +358,12 @@ def crosstalk(anndata, LRDB_table, groupby, n_perm=1000, n_jobs=1,
               verbose=False, pgb_notebook=False, pseudo_expr=1e-5):
     """
     crosstalk analysis
+    anndata: an AnnData object
+    LRDB_table: a pandas.DataFrame contains `ligand_symbol` column and `receptor_symbol` column
+    groupby: a column key in adata.obs specifying cell types
+    n_perm: number of permutations to calculate crosstalk intensity significance. Default = 1000
+    n_jobs: number of parallel processes. Default=1
+
     """
     assert(n_jobs>0 and isinstance(n_jobs ,int) )
     
