@@ -1,0 +1,9 @@
+LICENSE
+README.md
+setup.py
+depair/__init__.py
+depair/eval.py
+depair.egg-info/PKG-INFO
+depair.egg-info/SOURCES.txt
+depair.egg-info/dependency_links.txt
+depair.egg-info/top_level.txt

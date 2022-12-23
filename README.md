@@ -6,7 +6,7 @@ DEPair evaluates ligand-receptor mediated crosstalks among cell populations.
 A interaction score as well as its significance is given for each pair of clusters with DEPair.
 DEPair also identifies the variable interactions between different groups.
 
-DEPair is really easy.
+You can install DEPair via `pip install depair`.
 
 ```
 import numpy as np,scanpy as sc,anndata as ad,pandas as pd
@@ -49,7 +49,7 @@ crosstalk_degenerated=crosstalk(anndata=adata_degenerated,
 - [x] human and mouse ligand-receptor databases
 - [ ] ligand-receptor databases for other species 
 - [ ] a tutorial as well as a document online at readthedocs
-- [ ] upload to pypi
+- [x] upload to pypi
 - [ ] spatial transcriptomics support
 - [ ] multi subunit analysis support
 - [ ] ligand-receptor database with detailed annotation
@@ -63,6 +63,7 @@ crosstalk_degenerated=crosstalk(anndata=adata_degenerated,
 ## News
 - 2021-04-08  prerelease test version online
 - 2021-04-30  Qijin Yin contributed the permutation speed up codes
+- 2022-12-23 upload to pypi
 
 ---
 
