@@ -354,7 +354,7 @@ def __get_significance_parallel(adata, crosstalk, LRDB, n_perm, groupby,
     return crosstalk    
 
 
-def crosstalk(anndata, LRDB_table, groupby, n_perm=1000, n_jobs=1, 
+def crosstalk(anndata, LRDB_table, groupby, n_perm=1000, n_jobs=1, eval_significance=True,
               verbose=False, pgb_notebook=False, pseudo_expr=1e-5):
     """
     crosstalk analysis
@@ -373,22 +373,22 @@ def crosstalk(anndata, LRDB_table, groupby, n_perm=1000, n_jobs=1,
     # get intensity scores of the cellular crosstalks
     crosstalk   = __get_crosstalk(adata_trim, groupby=groupby, LRDB=LRDB, verbose=verbose, pgb_notebook=pgb_notebook)
     
-    
-    # get the significance of the intensities
-    if verbose:
-        print("Evaluation of interaction significances: randomly permuting %d times"%n_perm)
-    else:
-        import warnings; warnings.filterwarnings("ignore");
-    
-    if n_jobs==1: # serial exec
-        if verbose: print("single-core run");
-        crosstalk = __get_significance(adata_trim, crosstalk, LRDB, n_perm=n_perm, groupby=groupby,
-                                       pseudo_expr=pseudo_expr,
-                                       verbose=verbose, pgb_notebook=pgb_notebook )
-    else:
-        if verbose: print("%d-core run"%n_jobs);
-        crosstalk = __get_significance_parallel(adata_trim, crosstalk, LRDB, n_perm=n_perm, groupby=groupby,
-                                                pseudo_expr=pseudo_expr,
-                                                n_jobs=n_jobs )
+    if eval_significance:
+        # get the significance of the intensities
+        if verbose:
+            print("Evaluation of interaction significances: randomly permuting %d times"%n_perm)
+        else:
+            import warnings; warnings.filterwarnings("ignore");
+
+        if n_jobs==1: # serial exec
+            if verbose: print("single-core run");
+            crosstalk = __get_significance(adata_trim, crosstalk, LRDB, n_perm=n_perm, groupby=groupby,
+                                           pseudo_expr=pseudo_expr,
+                                           verbose=verbose, pgb_notebook=pgb_notebook )
+        else:
+            if verbose: print("%d-core run"%n_jobs);
+            crosstalk = __get_significance_parallel(adata_trim, crosstalk, LRDB, n_perm=n_perm, groupby=groupby,
+                                                    pseudo_expr=pseudo_expr,
+                                                    n_jobs=n_jobs )
     
     return crosstalk
