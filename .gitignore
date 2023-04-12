@@ -1,0 +1,8 @@
+ .gititnore
+
+
+build/.DS_Store
+
+build/lib/.DS_Store
+
+.DS_Store
