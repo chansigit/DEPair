@@ -4,7 +4,7 @@ long_description = "a scanpy-based single-cell crosstalk analysis package"
 
 setuptools.setup(
   name="depair",
-  version="0.0.1",
+  version="0.0.2",
   author="Sijie Chen",
   author_email="chansigit@gmail.com",
   description="A scanpy-based single-cell crosstalk analysis package",
