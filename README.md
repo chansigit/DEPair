@@ -63,7 +63,7 @@ crosstalk_degenerated=crosstalk(anndata=adata_degenerated,
 ## News
 - 2021-04-08  prerelease test version online
 - 2021-04-30  Qijin Yin contributed the permutation speed up codes
-- 2022-12-23 DEPair is available at pypi. 
+- 2022-12-23 DEPair is available at pypi (https://pypi.org/project/depair/). 
 - 2023-04-12 add `eval_significance=False` option in crosstalk() to skip the significance evaluation step.
 ---
 
